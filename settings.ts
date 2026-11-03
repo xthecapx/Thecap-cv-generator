@@ -7,6 +7,9 @@ export interface CvSettings {
 	cvNoteMode: CvNoteMode;
 	cvNotePath: string;
 	cvTag: string;
+	pdfFontSize: number;
+	pdfFontPath: string;
+	pdfBoldFontPath: string;
 }
 
 export function loadSettings(data: Partial<CvSettings> | null): CvSettings {
@@ -15,6 +18,10 @@ export function loadSettings(data: Partial<CvSettings> | null): CvSettings {
 			? data.cvNoteMode : 'all',
 		cvNotePath: typeof data?.cvNotePath === 'string' ? data.cvNotePath : '',
 		cvTag: typeof data?.cvTag === 'string' ? data.cvTag : 'cv',
+		pdfFontSize: typeof data?.pdfFontSize === 'number' && Number.isFinite(data.pdfFontSize) && data.pdfFontSize >= 8 && data.pdfFontSize <= 20
+			? data.pdfFontSize : 12,
+		pdfFontPath: typeof data?.pdfFontPath === 'string' ? data.pdfFontPath : '',
+		pdfBoldFontPath: typeof data?.pdfBoldFontPath === 'string' ? data.pdfBoldFontPath : '',
 	};
 }
 
@@ -89,5 +96,39 @@ export class CvSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 		}
+
+		new Setting(containerEl)
+			.setName('PDF text size')
+			.setDesc('Base size in points. Headings and smaller text scale together. A note’s font-size property overrides this default. Reopen the preview after changing settings.')
+			.addSlider(slider => slider
+				.setLimits(8, 20, 1)
+				.setValue(this.plugin.settings.pdfFontSize)
+				.setDynamicTooltip()
+				.onChange(async value => {
+					this.plugin.settings.pdfFontSize = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('PDF font file')
+			.setDesc('Path to a static TTF or WOFF font in your vault. For Chinese, choose a font with Chinese characters. Leave empty for Helvetica. Fonts load locally and work offline.')
+			.addText(text => text
+				.setPlaceholder('Fonts/NotoSansSC-Regular.ttf')
+				.setValue(this.plugin.settings.pdfFontPath)
+				.onChange(async value => {
+					this.plugin.settings.pdfFontPath = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('PDF bold font file')
+			.setDesc('Optional bold TTF or WOFF from the same family. Without it, headings use the regular font. Custom fonts use upright text because an italic font is not supplied.')
+			.addText(text => text
+				.setPlaceholder('Fonts/NotoSansSC-Bold.ttf')
+				.setValue(this.plugin.settings.pdfBoldFontPath)
+				.onChange(async value => {
+					this.plugin.settings.pdfBoldFontPath = value;
+					await this.plugin.saveSettings();
+				}));
 	}
 }

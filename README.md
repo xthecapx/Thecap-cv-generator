@@ -45,6 +45,33 @@ tabs. An empty path or tag matches no notes. Visibility updates when you switch
 notes or edit their tags. The command palette action follows the same rule even
 if you hide the ribbon through Obsidian's own ribbon settings.
 
+### PDF text size and fonts
+
+Open **Settings → Thecap cv generator → PDF text size** to change the default
+text size (8–20, default 12). Headings and contact details scale with it. To
+override the size for one CV, add this property to its existing frontmatter:
+
+```yaml
+---
+font-size: 14
+---
+```
+
+For Chinese or other scripts unsupported by the default Helvetica font:
+
+1. Copy a **static TTF or WOFF** font that contains your characters into your
+   vault, for example `Fonts/Chinese-Regular.ttf`. Variable fonts, OTF, WOFF2,
+   and font collections are not supported.
+2. Set **PDF font file** to its path relative to the vault.
+3. Optionally set **PDF bold font file** to the matching bold font. Without one,
+   headings use the regular font. Custom fonts use upright text throughout.
+4. Close and reopen the CV preview after changing these settings.
+
+Fonts load locally and work offline. Choose a font whose license permits PDF
+embedding, with coverage for all the languages in your CV. Chinese text wraps
+between characters without adding hyphens. Clear both font paths to restore
+Helvetica. If you move or rename a font file, update its path in settings.
+
 ## Notation Guide
 
 Use the following markdown notation to structure your curriculum:
@@ -59,6 +86,21 @@ Use the following markdown notation to structure your curriculum:
 | `### Primary Title \break` | Item with page break after | `### Project Lead \break` |
 | `#### Secondary Title \| Right Text` | Subtitle with optional right-aligned text | `#### Team Lead \| New York` |
 | `- Detail` | Bullet point details | `- Led team of 5 developers` |
+
+Contact keys are not restricted to a fixed list. `title` appears beneath your
+name; phone, email, location, LinkedIn, and GitHub have built-in formatting.
+Other keys keep their labels and appear in the contact header, for example:
+
+```markdown
+# John Doe
+- title: Software Engineer
+- Location: Shanghai, China
+- Website: [Portfolio](https://example.com)
+- Languages: Chinese: native; English: fluent
+```
+
+Use a full `https://` URL or a Markdown link to make a custom field clickable.
+Empty contact entries are omitted.
 
 ### Example:
 

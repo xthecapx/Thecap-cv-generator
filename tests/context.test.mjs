@@ -9,7 +9,7 @@ import { buildSync } from 'esbuild';
 const source = buildSync({
   entryPoints: [resolve(dirname(fileURLToPath(import.meta.url)), '../main.ts')],
   bundle: true, platform: 'node', format: 'cjs', write: false,
-  external: ['obsidian', 'react', 'react-dom/client', './ReactView'],
+  external: ['obsidian', 'react', 'react-dom/client', './ReactView', './pdf-font'],
 }).outputFiles[0].text;
 
 class Events {
@@ -81,6 +81,8 @@ async function setup(data = null, initialPath = null) {
         addOption(value, label) { this.options[value] = label; return this; },
         setValue(value) { this.value = value; return this; },
         setPlaceholder() { return this; },
+        setLimits() { return this; },
+        setDynamicTooltip() { return this; },
         onChange(callback) { this.change = callback; return this; },
       };
       callback(control);
@@ -89,6 +91,7 @@ async function setup(data = null, initialPath = null) {
     }
     addDropdown(callback) { return this.addControl(callback); }
     addText(callback) { return this.addControl(callback); }
+    addSlider(callback) { return this.addControl(callback); }
   }
   const obsidian = {
     Plugin, PluginSettingTab, Setting, MarkdownView,
@@ -104,7 +107,7 @@ async function setup(data = null, initialPath = null) {
     module, exports: module.exports,
     require: name => {
       if (name === 'obsidian') return obsidian;
-      if (['react', 'react-dom/client', './ReactView'].includes(name)) return {};
+      if (['react', 'react-dom/client', './ReactView', './pdf-font'].includes(name)) return {};
       throw new Error(`Unexpected dependency: ${name}`);
     },
   });
@@ -204,6 +207,21 @@ test('empty configured path or tag does not enable a preview', async () => {
     const f = await setup(data, 'CV.md');
     f.assertAvailable(false);
   }
+});
+
+test('PDF settings persist and legacy settings receive safe defaults', async () => {
+  const f = await setup({ pdfFontSize: -5, pdfFontPath: 42 }, 'CV.md');
+  assert.equal(f.plugin.settings.pdfFontSize, 12);
+  assert.equal(f.plugin.settings.pdfFontPath, '');
+  f.plugin.tab.display();
+  const controls = f.plugin.tab.containerEl.controls;
+  await controls.find(control => control.name === 'PDF text size').change(16);
+  await controls.find(control => control.name === 'PDF font file').change('Fonts/Chinese.ttf');
+  await controls.find(control => control.name === 'PDF bold font file').change('Fonts/Chinese-Bold.ttf');
+  const reloaded = await setup(f.plugin.saved, 'CV.md');
+  assert.equal(reloaded.plugin.settings.pdfFontSize, 16);
+  assert.equal(reloaded.plugin.settings.pdfFontPath, 'Fonts/Chinese.ttf');
+  assert.equal(reloaded.plugin.settings.pdfBoldFontPath, 'Fonts/Chinese-Bold.ttf');
 });
 
 test('renaming the selected note updates and persists the configured path', async () => {

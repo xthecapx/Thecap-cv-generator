@@ -2,12 +2,14 @@ import * as React from 'react';
 
 import { PDFViewer } from '@react-pdf/renderer';
 import { documentStyles, markdownToCv, CvDocument, validateCvMarkdown } from '@thecap-cv/components';
+import type { CvRenderOptions } from '@thecap-cv/components';
 
 interface ReactViewProps {
     markdown: string;
+    options?: CvRenderOptions;
 }
 
-export const ReactView: React.FC<ReactViewProps> = ({ markdown }) => {
+export const ReactView: React.FC<ReactViewProps> = ({ markdown, options }) => {
   const { isValid, errors } = validateCvMarkdown(markdown);
 
   if (!isValid) {
@@ -39,7 +41,7 @@ export const ReactView: React.FC<ReactViewProps> = ({ markdown }) => {
   return (
       <div className="react-view-container">
         <PDFViewer style={documentStyles.viewer}>
-          <CvDocument cvData={cvData} />
+          <CvDocument cvData={cvData} options={options} />
         </PDFViewer>
       </div>
   );

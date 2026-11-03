@@ -1,11 +1,17 @@
-import { getAllTags, MarkdownView, Plugin, Modal } from 'obsidian';
+import { App, getAllTags, MarkdownView, Plugin, Modal } from 'obsidian';
 import React, { StrictMode } from 'react';
 import { Root, createRoot } from 'react-dom/client';
 import { ReactView } from './ReactView';
 import { CvSettings, CvSettingTab, cvNotePath, loadSettings, isCvNote } from './settings';
+import { loadVaultPdfFont } from './pdf-font';
 
 class CvModal extends Modal {
 	root: Root | null = null;
+	private closed = false;
+
+	constructor(app: App, private settings: CvSettings) {
+		super(app);
+	}
 
 	async getCurrentMarkdown(): Promise<string> {
 		const activeFile = this.app.workspace.getActiveFile();
@@ -20,20 +26,32 @@ class CvModal extends Modal {
 		contentEl.empty();
 		contentEl.addClass('cv-preview-modal');
 		
-		// Create container for React
-		const reactContainer = contentEl.createDiv();
-		this.root = createRoot(reactContainer);
-
-		const markdown = await this.getCurrentMarkdown();
-		this.root.render(
-			React.createElement(StrictMode, null,
-				React.createElement(ReactView, { markdown })
-			)
-		);
+		contentEl.createEl('p', { text: 'Loading PDF preview…' });
+		try {
+			const [markdown, fontFamily] = await Promise.all([
+				this.getCurrentMarkdown(),
+				loadVaultPdfFont(this.app, this.settings.pdfFontPath, this.settings.pdfBoldFontPath),
+			]);
+			if (this.closed) return;
+			contentEl.empty();
+			this.root = createRoot(contentEl.createDiv());
+			this.root.render(
+				React.createElement(StrictMode, null,
+					React.createElement(ReactView, { markdown, options: { fontFamily, fontSize: this.settings.pdfFontSize } })
+				)
+			);
+		} catch (error) {
+			if (this.closed) return;
+			contentEl.empty();
+			contentEl.createEl('p', { text: error instanceof Error ? error.message : 'Could not open the PDF preview.' });
+			contentEl.createEl('p', { text: 'Check the PDF font paths in the plugin settings, then reopen the preview.' });
+		}
 	}
 
 	onClose() {
+		this.closed = true;
 		this.root?.unmount();
+		this.root = null;
 		const { contentEl } = this;
 		contentEl.empty();
 	}
@@ -47,7 +65,7 @@ export default class ThecapCvGenerator extends Plugin {
 		this.settings = loadSettings(await this.loadData());
 		this.addSettingTab(new CvSettingTab(this.app, this));
 		this.ribbonIcon = this.addRibbonIcon('pdf-file', 'Preview curriculum', () => {
-			if (this.canPreview()) new CvModal(this.app).open();
+			if (this.canPreview()) new CvModal(this.app, { ...this.settings }).open();
 		});
 		this.updateRibbonVisibility();
 		this.app.workspace.onLayoutReady(() => this.updateRibbonVisibility());
@@ -75,7 +93,7 @@ export default class ThecapCvGenerator extends Plugin {
 			name: 'Open curriculum preview',
 			checkCallback: checking => {
 				if (!this.canPreview()) return false;
-				if (!checking) new CvModal(this.app).open();
+				if (!checking) new CvModal(this.app, { ...this.settings }).open();
 				return true;
 			}
 		});
