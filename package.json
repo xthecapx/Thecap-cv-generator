@@ -1,6 +1,6 @@
 {
 	"name": "@thecap-cv/obsidian",
-	"version": "1.0.0",
+	"version": "1.0.7",
 	"private": true,
 	"description": "Generate PDF curriculum from your notes.",
 	"main": "main.js",
@@ -16,7 +16,7 @@
 		"@react-pdf/renderer": "^4.1.6",
 		"lodash": "^4.17.21",
 		"react": "^19.0.0",
-    	"react-dom": "^19.0.0",
+		"react-dom": "^19.0.0",
 		"@thecap-cv/components": "workspace:*"
 	},
 	"devDependencies": {
