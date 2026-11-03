@@ -17,6 +17,34 @@ There are two ways to open the curriculum preview:
 1. **Ribbon Icon**: Click the PDF file icon (📄) in the left sidebar ribbon to "Preview curriculum"
 2. **Command Palette**: Open the command palette (Cmd/Ctrl + P) and search for "Open curriculum preview"
 
+### Choose which notes are CV notes
+
+Open **Settings → Thecap cv generator → CV notes** and choose:
+
+- **All Markdown notes**: Allow previewing any Markdown note (the default).
+- **A specific note**: Enter a path relative to your vault, such as
+  `Career/CV.md`. The `.md` extension is optional. The saved path follows renames
+  and moves of the note or its containing folder while the plugin is enabled.
+- **Notes with a tag**: Enter a tag such as `cv`, `#cv`, or `career/cv`.
+  The tag can appear in the note text or its YAML `tags` property. Matching is
+  case-insensitive and includes nested tags, like Obsidian search: `cv` matches
+  `cv/draft` but not `cv-old`.
+
+For example, this property enables the button when the configured tag is `cv`:
+
+```yaml
+---
+tags:
+  - cv
+---
+```
+
+The ribbon button and command palette action are available only when a matching
+Markdown note is active. Neither is available on non-Markdown views or empty
+tabs. An empty path or tag matches no notes. Visibility updates when you switch
+notes or edit their tags. The command palette action follows the same rule even
+if you hide the ribbon through Obsidian's own ribbon settings.
+
 ## Notation Guide
 
 Use the following markdown notation to structure your curriculum:
