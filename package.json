@@ -1,6 +1,6 @@
 {
 	"name": "@thecap-cv/obsidian",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"private": true,
 	"description": "Generate PDF curriculum from your notes.",
 	"main": "main.js",
